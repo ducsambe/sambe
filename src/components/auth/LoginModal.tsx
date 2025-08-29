@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { X, Eye, EyeOff, User, Mail, Lock, Phone } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../hooks/useAuth';
-import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface LoginModalProps {

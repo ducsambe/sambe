@@ -275,7 +275,9 @@ const AdminDashboard: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <img 
-                              src={property.property_images?.[0]?.image_url || 'https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=800'} 
+                              src={property.property_images?.[0]?.image_url || 
+                                   property.images?.[0] || 
+                                   'https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=800'} 
                               alt={property.title}
                               className="h-12 w-12 rounded-lg object-cover mr-4"
                             />
@@ -287,7 +289,7 @@ const AdminDashboard: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {property.type}
+                            {property.property_type || property.type}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

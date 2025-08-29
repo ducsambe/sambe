@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, mockUsers } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 
 type UserProfile = Database['public']['Tables']['users']['Row'];
@@ -28,13 +28,7 @@ export const useAuth = () => {
     try {
       setLoading(true);
       
-      // Check if Supabase is properly configured
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseKey || 
-          supabaseUrl.includes('your-project-id') || 
-          supabaseKey.includes('your-anon-key')) {
+      if (!isSupabaseConfigured()) {
         
         // Mock user creation for development
         console.log('Using mock user creation - Supabase not configured');
@@ -50,18 +44,15 @@ export const useAuth = () => {
         // Create new mock user
         const newUser = {
           id: `mock-user-${Date.now()}`,
+          username: email.split('@')[0],
           email,
-          password,
-          full_name: userData?.full_name || null,
-          phone_number: userData?.phone_number || null,
+          password_hash: password,
+          first_name: userData?.full_name?.split(' ')[0] || null,
+          last_name: userData?.full_name?.split(' ').slice(1).join(' ') || null,
+          phone: userData?.phone_number || null,
           address: null,
-          city: null,
-          country: 'Cameroun',
-          avatar_url: null,
-          role: 'client' as const,
-          is_verified: true,
-          two_fa_enabled: false,
-          notifications_enabled: true,
+          profile_image_url: null,
+          is_active: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
@@ -90,18 +81,15 @@ export const useAuth = () => {
 
       // Create new user
       const newUser = {
+        username: email.split('@')[0],
         email,
-        password,
-        full_name: userData?.full_name || null,
-        phone_number: userData?.phone_number || null,
+        password_hash: password,
+        first_name: userData?.full_name?.split(' ')[0] || null,
+        last_name: userData?.full_name?.split(' ').slice(1).join(' ') || null,
+        phone: userData?.phone_number || null,
         address: null,
-        city: null,
-        country: 'Cameroun',
-        avatar_url: null,
-        role: 'client' as const,
-        is_verified: true, // Auto-verify since no email confirmation
-        two_fa_enabled: false,
-        notifications_enabled: true
+        profile_image_url: null,
+        is_active: true
       };
 
       const { data, error } = await supabase
@@ -136,44 +124,21 @@ export const useAuth = () => {
     try {
       setLoading(true);
       
-      // Check if Supabase is properly configured
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseKey || 
-          supabaseUrl.includes('your-project-id') || 
-          supabaseKey.includes('your-anon-key')) {
+      if (!isSupabaseConfigured()) {
         
         // Mock authentication for development
         console.log('Using mock authentication - Supabase not configured');
         
-        // Mock user data for demo
-        const mockUsers = [
-          {
-            id: 'mock-user-1',
-            email: 'user@geocasa.com',
-            password: 'user123',
-            full_name: 'Demo User',
-            phone_number: '+237670123456',
-            role: 'client',
-            is_verified: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            address: null,
-            city: 'Douala',
-            country: 'Cameroun',
-            avatar_url: null,
-            two_fa_enabled: false,
-            notifications_enabled: true
-          }
-        ];
+        // Get stored mock users or use defaults
+        const storedUsers = JSON.parse(localStorage.getItem('geocasa_mock_users') || '[]');
+        const allMockUsers = [...mockUsers, ...storedUsers];
         
         // Find user by email or phone
-        const mockUser = mockUsers.find(u => 
-          u.email === email || u.phone_number === email
+        const mockUser = allMockUsers.find(u => 
+          u.email === email || u.phone === email
         );
         
-        if (!mockUser || mockUser.password !== password) {
+        if (!mockUser || mockUser.password_hash !== password) {
           return { success: false, error: 'Email ou mot de passe incorrect' };
         }
         
@@ -189,17 +154,17 @@ export const useAuth = () => {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .or(`email.eq.${email},phone_number.eq.${email}`)
-        .single();
+        .or(`email.eq.${email},phone.eq.${email}`)
+        .maybeSingle();
 
       if (error || !data) {
         console.error('Login error:', error);
-        return { success: false, error: 'Email ou mot de passe incorrect' };
+        return { success: false, error: 'Email ou numéro de téléphone ou mot de passe incorrect' };
       }
 
       // Check password (plain text comparison as requested)
-      if (data.password !== password) {
-        return { success: false, error: 'Email ou mot de passe incorrect' };
+      if (data.password_hash !== password) {
+        return { success: false, error: 'Email ou numéro de téléphone ou mot de passe incorrect' };
       }
 
       // Store user session
@@ -209,10 +174,13 @@ export const useAuth = () => {
 
       return { success: true, data };
     } catch (error) {
-      console.error('Login error:', error);
+      const errorMessage = error && typeof error === 'object' && 'message' in error 
+        ? (error as Error).message 
+        : 'Erreur lors de la connexion';
+      console.error('Login error:', errorMessage);
       return { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Erreur lors de la connexion' 
+        error: errorMessage
       };
     } finally {
       setLoading(false);

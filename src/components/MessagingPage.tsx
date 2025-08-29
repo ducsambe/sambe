@@ -58,7 +58,12 @@ const MessagingPage: React.FC = () => {
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
             <div className="text-xl font-bold text-gray-900">{language === 'en' ? 'Messaging' : 'Messagerie'}</div>
-            <div className="text-sm text-gray-500">{userProfile?.full_name ? `${language === 'en' ? 'Signed in as' : 'Connecté en tant que'} ${userProfile.full_name}` : (language === 'en' ? 'Guest' : 'Invité')}</div>
+            <div className="text-sm text-gray-500">
+              {userProfile ? 
+                `${language === 'en' ? 'Signed in as' : 'Connecté en tant que'} ${userProfile.first_name} ${userProfile.last_name}` : 
+                (language === 'en' ? 'Guest' : 'Invité')
+              }
+            </div>
           </div>
           <div className="flex gap-2">
             <button

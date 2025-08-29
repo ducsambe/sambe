@@ -65,7 +65,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       appartement: language === 'en' ? 'Apartment' : 'Appartement',
       lot: language === 'en' ? 'Lot' : 'Lot',
       studio: language === 'en' ? 'Studio' : 'Studio',
-      chambre: language === 'en' ? 'Room' : 'Chambre'
+      chambre: language === 'en' ? 'Room' : 'Chambre',
+      commercial: language === 'en' ? 'Commercial' : 'Commercial'
     };
     return typeLabels[type as keyof typeof typeLabels] || type;
   };
@@ -209,8 +210,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(property.status || 'available')}`}>
             {getStatusLabel(property.status || 'available')}
           </span>
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(property.property_type || 'maison')}`}>
-            {getTypeLabel(property.property_type || 'maison')}
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(property.property_type || property.type || 'maison')}`}>
+            {getTypeLabel(property.property_type || property.type || 'maison')}
           </span>
         </div>
         
@@ -243,11 +244,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         <div className="flex items-center text-gray-600 mb-4">
           <MapPin className="h-4 w-4 mr-2 text-green-500" />
           <span className="text-sm">{property.location}</span>
-          {property.area_sqm && (
+          {(property.area_sqm || property.area) && (
             <>
               <span className="mx-2">•</span>
               <Ruler className="h-4 w-4 mr-1" />
-              <span className="text-sm">{property.area_sqm} m²</span>
+              <span className="text-sm">{property.area_sqm || property.area} m²</span>
             </>
           )}
         </div>

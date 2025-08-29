@@ -123,10 +123,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeSection, onSectionChang
                     className="hidden sm:flex items-center p-2 text-gray-600 hover:text-geocasa-blue hover:bg-gray-50 rounded-lg transition-all"
                   >
                     <div className="w-8 h-8 bg-gradient-to-r from-geocasa-blue to-geocasa-orange rounded-full flex items-center justify-center mr-2">
-                      {userProfile.avatar_url ? (
+                      {userProfile.profile_image_url ? (
                         <img 
-                          src={userProfile.avatar_url || "/placeholder.svg"} 
-                          alt={userProfile.full_name} 
+                          src={userProfile.profile_image_url || "/placeholder.svg"} 
+                          alt={`${userProfile.first_name} ${userProfile.last_name}`} 
                           className="w-8 h-8 rounded-full object-cover"
                         />
                       ) : (
@@ -134,7 +134,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeSection, onSectionChang
                       )}
                     </div>
                     <span className="text-sm font-medium max-w-24 truncate">
-                      {userProfile.full_name}
+                      {userProfile.first_name} {userProfile.last_name}
                     </span>
                   </button>
                   
@@ -142,7 +142,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeSection, onSectionChang
                   {showUserMenu && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
                       <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">{userProfile.full_name}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {userProfile.first_name} {userProfile.last_name}
+                        </p>
                         <p className="text-xs text-gray-500">{user.email}</p>
                       </div>
                       

@@ -71,10 +71,10 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           <div className="p-4 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-red-600 rounded-full flex items-center justify-center">
-                {userProfile.avatar_url ? (
+                {userProfile.profile_image_url ? (
                   <img 
-                    src={userProfile.avatar_url || "/placeholder.svg"} 
-                    alt={userProfile.full_name} 
+                    src={userProfile.profile_image_url || "/placeholder.svg"} 
+                    alt={`${userProfile.first_name} ${userProfile.last_name}`} 
                     className="w-12 h-12 rounded-full object-cover"
                   />
                 ) : (
@@ -82,7 +82,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 )}
               </div>
               <div>
-                <p className="font-medium text-gray-900">{userProfile.full_name}</p>
+                <p className="font-medium text-gray-900">
+                  {userProfile.first_name} {userProfile.last_name}
+                </p>
                 <p className="text-sm text-gray-500">{user.email}</p>
               </div>
             </div>

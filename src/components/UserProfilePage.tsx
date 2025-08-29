@@ -47,13 +47,13 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ onClose }) => {
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
   
   const [editForm, setEditForm] = useState({
-    full_name: userProfile?.full_name || '',
+    full_name: userProfile ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() : '',
     email: userProfile?.email || '',
-    phone_number: userProfile?.phone_number || '',
-    avatar_url: userProfile?.avatar_url || '',
+    phone_number: userProfile?.phone || '',
+    avatar_url: userProfile?.profile_image_url || '',
     address: userProfile?.address || '',
-    city: userProfile?.city || '',
-    country: userProfile?.country || 'Cameroun'
+    city: '',
+    country: 'Cameroun'
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -99,13 +99,13 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ onClose }) => {
   useEffect(() => {
     if (userProfile) {
       setEditForm({
-        full_name: userProfile.full_name || '',
+        full_name: `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim(),
         email: userProfile.email || '',
-        phone_number: userProfile.phone_number || '',
-        avatar_url: userProfile.avatar_url || '',
+        phone_number: userProfile.phone || '',
+        avatar_url: userProfile.profile_image_url || '',
         address: userProfile.address || '',
-        city: userProfile.city || '',
-        country: userProfile.country || 'Cameroun'
+        city: '',
+        country: 'Cameroun'
       });
     }
   }, [userProfile]);
@@ -161,8 +161,12 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ onClose }) => {
       }
 
       const result = await updateProfile({
-        ...editForm,
-        avatar_url: avatarUrl
+        first_name: editForm.full_name.split(' ')[0] || '',
+        last_name: editForm.full_name.split(' ').slice(1).join(' ') || '',
+        email: editForm.email,
+        phone: editForm.phone_number,
+        address: editForm.address,
+        profile_image_url: avatarUrl
       });
 
       if (result.success) {
@@ -278,10 +282,10 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ onClose }) => {
             <div className="text-center">
               <div className="relative inline-block">
                 <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-r from-geocasa-blue to-geocasa-orange flex items-center justify-center">
-                  {profileImagePreview || userProfile.avatar_url ? (
+                  {profileImagePreview || userProfile.profile_image_url ? (
                     <img 
-                      src={profileImagePreview || userProfile.avatar_url} 
-                      alt={userProfile.full_name} 
+                      src={profileImagePreview || userProfile.profile_image_url} 
+                      alt={`${userProfile.first_name} ${userProfile.last_name}`} 
                       className="w-full h-full object-cover" 
                     />
                   ) : (
@@ -300,13 +304,12 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ onClose }) => {
                   </label>
                 )}
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mt-4">{userProfile.full_name}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mt-4">
+                {userProfile.first_name} {userProfile.last_name}
+              </h2>
               <p className="text-gray-600">{userProfile.email}</p>
               <span className="inline-block px-3 py-1 bg-gradient-to-r from-green-100 to-red-100 text-green-800 rounded-full text-sm font-medium mt-2">
-                {userProfile.role === 'client' 
-                  ? (language === 'en' ? 'Client' : 'Client')
-                  : (language === 'en' ? 'Administrator' : 'Administrateur')
-                }
+                {language === 'en' ? 'Client' : 'Client'}
               </span>
             </div>
 

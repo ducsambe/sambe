@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, mockProperties } from '../lib/supabase';
+import { Database } from '../lib/database.types';
 
-// Temporary type until Supabase is configured
-type Property = any;
+type Property = Database['public']['Tables']['properties']['Row'] & {
+  property_images?: { image_url: string }[];
+  plots?: any[];
+  reviews?: any[];
+};
 
 export const useProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -10,8 +14,20 @@ export const useProperties = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchProperties = async () => {
-    if (!supabase) {
-      setError('Supabase not configured');
+    if (!isSupabaseConfigured()) {
+      // Use mock data when Supabase is not configured
+      console.log('Using mock properties - Supabase not configured');
+      
+      // Transform mock data to match expected format
+      const transformedProperties = mockProperties.map(property => ({
+        ...property,
+        property_images: property.images?.map(url => ({ image_url: url })) || [],
+        property_type: property.type, // Map type to property_type for consistency
+        plots: [],
+        reviews: []
+      }));
+      
+      setProperties(transformedProperties);
       setLoading(false);
       return;
     }
@@ -22,14 +38,22 @@ export const useProperties = () => {
         .from('properties')
         .select(`
           *,
-          property_images (*),
-          plots (*),
-          reviews (*)
+          images
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProperties(data || []);
+      
+      // Transform data to match expected format
+      const transformedData = (data || []).map(property => ({
+        ...property,
+        property_images: property.images?.map(url => ({ image_url: url })) || [],
+        property_type: property.type,
+        plots: [],
+        reviews: []
+      }));
+      
+      setProperties(transformedData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
     } finally {
@@ -43,23 +67,35 @@ export const useProperties = () => {
 
   const getPropertyById = async (id: string) => {
     try {
-      if (!supabase) throw new Error('Supabase not configured');
+      if (!isSupabaseConfigured()) {
+        const property = mockProperties.find(p => p.id === id);
+        if (!property) throw new Error('Propriété non trouvée');
+        return {
+          ...property,
+          property_images: property.images?.map(url => ({ image_url: url })) || [],
+          property_type: property.type,
+          plots: [],
+          reviews: []
+        };
+      }
+      
       const { data, error } = await supabase
         .from('properties')
         .select(`
           *,
-          property_images (*),
-          plots (*),
-          reviews (
-            *,
-            users (full_name)
-          )
+          images
         `)
         .eq('id', id)
         .single();
 
       if (error) throw error;
-      return data;
+      return {
+        ...data,
+        property_images: data.images?.map(url => ({ image_url: url })) || [],
+        property_type: data.type,
+        plots: [],
+        reviews: []
+      };
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Propriété non trouvée');
     }
@@ -67,7 +103,7 @@ export const useProperties = () => {
 
   const getPropertiesByType = (type: string) => {
     if (type === 'all') return properties;
-    return properties.filter(property => property.type === type);
+    return properties.filter(property => property.property_type === type || property.type === type);
   };
 
   const searchProperties = (query: string) => {
@@ -89,7 +125,8 @@ export const useProperties = () => {
     status?: string;
   }) => {
     return properties.filter(property => {
-      if (filters.type && filters.type !== 'all' && property.type !== filters.type) {
+      if (filters.type && filters.type !== 'all' && 
+          property.property_type !== filters.type && property.type !== filters.type) {
         return false;
       }
       if (filters.minPrice && property.price < filters.minPrice) {

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, MapPin, Home, Ruler, MessageCircle, Heart } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, MapPin, Home, Ruler, MessageCircle, Heart, Play } from 'lucide-react';
 import { Database } from '../lib/database.types';
 
 type Property = Database['public']['Tables']['properties']['Row'] & {
-  property_images: Database['public']['Tables']['property_images']['Row'][];
-  plots?: Database['public']['Tables']['plots']['Row'][];
+  property_images?: { image_url: string }[];
+  plots?: any[];
 };
 
 interface PropertyModalProps {
@@ -23,12 +23,14 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
 
-  const images = property.property_images?.map(img => img.image_url) || [];
+  const images = property.property_images?.map(img => img.image_url) || 
+                 property.images || 
+                 ['https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=800'];
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR',
+      currency: 'XAF',
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -181,7 +183,7 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <Ruler className="h-6 w-6 mx-auto mb-2 text-emerald-600" />
                     <div className="text-sm text-gray-600">Surface</div>
-                    <div className="font-semibold">{property.area_sqm} m²</div>
+                    <div className="font-semibold">{property.area_sqm || 0} m²</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <div className={`w-6 h-6 mx-auto mb-2 rounded-full ${

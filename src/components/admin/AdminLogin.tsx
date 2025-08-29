@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, Shield, AlertCircle, Home } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom'; // Import Link
 
 interface AdminLoginProps {
   onLoginSuccess: (adminData: any) => void;
@@ -31,30 +31,72 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
   setError('');
 
   try {
-    if (!supabase) throw new Error('Supabase not configured');
+    if (!isSupabaseConfigured()) {
+      // Mock admin authentication
+      const mockAdmins = [
+        { username: 'admin', email: 'admin@geocasa.com', password: 'admin123', full_name: 'Super Admin', role: 'admin' },
+        { username: 'geocasa_admin', email: 'geocasa_admin@geocasa.com', password: 'geocasa2024', full_name: 'GEOCASA Admin', role: 'admin' },
+        { username: 'manager', email: 'manager@geocasa.com', password: 'manager123', full_name: 'Manager', role: 'manager' }
+      ];
+      
+      const admin = mockAdmins.find(a => 
+        (a.email === formData.login || a.username === formData.login) && 
+        a.password === formData.password
+      );
+      
+      if (!admin) {
+        setError('Identifiants incorrects');
+        return;
+      }
+      
+      localStorage.setItem('geocasa_admin', JSON.stringify(admin));
+      toast.success(`Bienvenue ${admin.full_name} !`);
+      onLoginSuccess(admin);
+      return;
+    }
 
-    // Direct authentication with users table
-    const { data, error } = await supabase
+    // Query users and check if they have admin role
+    const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('*')
-      .or(`email.ilike.${formData.login},full_name.ilike.${formData.login}`)
-      .eq('password', formData.password)
-      .in('role', ['admin', 'staff'])
-      .single();
+      .select(`
+        *,
+        admins (
+          role,
+          permissions,
+          department,
+          is_active
+        )
+      `)
+      .or(`email.eq.${formData.login},username.eq.${formData.login}`)
+      .eq('password_hash', formData.password)
+      .maybeSingle();
 
-    if (error || !data) {
+    if (userError || !userData) {
       setError('Identifiants incorrects');
       return;
     }
 
-    if (!data.is_verified) {
+    if (!userData.is_active) {
       setError('Compte désactivé. Contactez l\'administrateur.');
       return;
     }
 
-    localStorage.setItem('geocasa_admin', JSON.stringify(data));
-    toast.success(`Bienvenue ${data.full_name || data.email} !`);
-    onLoginSuccess(data);
+    // Check if user has admin privileges
+    if (!userData.admins || userData.admins.length === 0) {
+      setError('Accès administrateur requis.');
+      return;
+    }
+
+    const adminData = {
+      ...userData,
+      role: userData.admins[0].role,
+      permissions: userData.admins[0].permissions,
+      department: userData.admins[0].department
+    };
+
+    localStorage.setItem('geocasa_admin', JSON.stringify(adminData));
+    toast.success(`Bienvenue ${userData.first_name} ${userData.last_name} !`);
+    onLoginSuccess(adminData);
   } catch (err) {
     console.error('Erreur de connexion:', err);
     setError('Identifiants incorrects ou erreur serveur.');
@@ -173,6 +215,10 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
             <div className="text-xs text-gray-600 space-y-1">
               <div><strong>Super Admin:</strong> admin / admin123</div>
               <div><strong>Admin:</strong> geocasa_admin / geocasa2024</div>
+              <div><strong>Manager:</strong> manager / manager123</div>
+            </div>
+            <div className="mt-1 pt-1 border-t border-blue-300">
+              <div><strong>Admin:</strong> admin / admin123</div>
               <div><strong>Manager:</strong> manager / manager123</div>
             </div>
           </div>
