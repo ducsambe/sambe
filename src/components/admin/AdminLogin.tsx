@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, Shield, AlertCircle, Home } from 'lucide-react';
-import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured, mockAdmins } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface AdminLoginProps {
@@ -33,15 +33,9 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
   try {
     if (!isSupabaseConfigured()) {
       // Mock admin authentication
-      const mockAdmins = [
-        { username: 'admin', email: 'admin@geocasa.com', password: 'admin123', full_name: 'Super Admin', role: 'admin' },
-        { username: 'geocasa_admin', email: 'geocasa_admin@geocasa.com', password: 'geocasa2024', full_name: 'GEOCASA Admin', role: 'admin' },
-        { username: 'manager', email: 'manager@geocasa.com', password: 'manager123', full_name: 'Manager', role: 'manager' }
-      ];
-      
       const admin = mockAdmins.find(a => 
         (a.email === formData.login || a.username === formData.login) && 
-        a.password === formData.password
+        a.password_hash === formData.password
       );
       
       if (!admin) {
@@ -50,52 +44,33 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
       }
       
       localStorage.setItem('geocasa_admin', JSON.stringify(admin));
-      toast.success(`Bienvenue ${admin.full_name} !`);
+      toast.success(`Bienvenue ${admin.first_name} ${admin.last_name} !`);
       onLoginSuccess(admin);
       return;
     }
 
-    // Query users and check if they have admin role
-    const { data: userData, error: userError } = await supabase
-      .from('users')
+    // Query admins table directly
+    const { data: adminData, error: adminError } = await supabase
+      .from('admins')
       .select(`
-        *,
-        admins (
-          role,
-          permissions,
-          department,
-          is_active
-        )
+        *
       `)
       .or(`email.eq.${formData.login},username.eq.${formData.login}`)
       .eq('password_hash', formData.password)
       .maybeSingle();
 
-    if (userError || !userData) {
+    if (adminError || !adminData) {
       setError('Identifiants incorrects');
       return;
     }
 
-    if (!userData.is_active) {
+    if (!adminData.is_active) {
       setError('Compte désactivé. Contactez l\'administrateur.');
       return;
     }
 
-    // Check if user has admin privileges
-    if (!userData.admins || userData.admins.length === 0) {
-      setError('Accès administrateur requis.');
-      return;
-    }
-
-    const adminData = {
-      ...userData,
-      role: userData.admins[0].role,
-      permissions: userData.admins[0].permissions,
-      department: userData.admins[0].department
-    };
-
     localStorage.setItem('geocasa_admin', JSON.stringify(adminData));
-    toast.success(`Bienvenue ${userData.first_name} ${userData.last_name} !`);
+    toast.success(`Bienvenue ${adminData.first_name} ${adminData.last_name} !`);
     onLoginSuccess(adminData);
   } catch (err) {
     console.error('Erreur de connexion:', err);
@@ -215,10 +190,6 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
             <div className="text-xs text-gray-600 space-y-1">
               <div><strong>Super Admin:</strong> admin / admin123</div>
               <div><strong>Admin:</strong> geocasa_admin / geocasa2024</div>
-              <div><strong>Manager:</strong> manager / manager123</div>
-            </div>
-            <div className="mt-1 pt-1 border-t border-blue-300">
-              <div><strong>Admin:</strong> admin / admin123</div>
               <div><strong>Manager:</strong> manager / manager123</div>
             </div>
           </div>

@@ -58,12 +58,7 @@ const UserManagement: React.FC = () => {
       const { data, error } = await supabase
         .from('users')
         .select(`
-          *,
-          admins (
-            role,
-            department,
-            is_active
-          )
+          *
         `)
         .order('created_at', { ascending: false });
 
@@ -196,24 +191,6 @@ const UserManagement: React.FC = () => {
 
       if (error) throw error;
 
-      // Add admin role if needed
-      if (newUserForm.role !== 'client') {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('id')
-          .eq('email', newUserForm.email)
-          .single();
-
-        if (userData) {
-          await supabase
-            .from('admins')
-            .insert({
-              user_id: userData.id,
-              role: newUserForm.role
-            });
-        }
-      }
-
       await fetchUsers();
       setShowAddUserForm(false);
       setNewUserForm({
@@ -238,8 +215,7 @@ const UserManagement: React.FC = () => {
                          user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.username?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const userRole = user.admins?.[0]?.role || 'client';
-    const matchesRole = filterRole === 'all' || userRole === filterRole;
+    const matchesRole = filterRole === 'all' || filterRole === 'client'; // Users are always clients
     
     const matchesStatus = filterStatus === 'all' || 
                          (filterStatus === 'active' && user.is_active) ||
@@ -249,7 +225,7 @@ const UserManagement: React.FC = () => {
   });
 
   const getUserRole = (user: any) => {
-    return user.admins?.[0]?.role || 'client';
+    return 'client'; // All users in users table are clients
   };
 
   const getRoleColor = (role: string) => {
@@ -362,9 +338,6 @@ const UserManagement: React.FC = () => {
           >
             <option value="all">{language === 'en' ? 'All Roles' : 'Tous les Rôles'}</option>
             <option value="client">{language === 'en' ? 'Clients' : 'Clients'}</option>
-            <option value="admin">{language === 'en' ? 'Administrators' : 'Administrateurs'}</option>
-            <option value="manager">{language === 'en' ? 'Managers' : 'Gestionnaires'}</option>
-            <option value="staff">{language === 'en' ? 'Staff' : 'Personnel'}</option>
           </select>
 
           <select
@@ -529,7 +502,7 @@ const UserManagement: React.FC = () => {
             </h3>
             <p className="text-gray-600">
               {language === 'en' 
-                ? 'Try adjusting your filters'
+                toast.success(language === 'en' ? 'Client added successfully' : 'Client ajouté avec succès');
                 : 'Essayez d\'ajuster vos filtres'
               }
             </p>
@@ -648,6 +621,7 @@ const UserManagement: React.FC = () => {
                     value={newUserForm.password}
                     onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))}
                     required
+                    disabled
                     minLength={6}
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
                   />
@@ -783,9 +757,6 @@ const UserManagement: React.FC = () => {
                       deleteUser(viewingUser.id);
                     }}
                     className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    {language === 'en' ? 'Delete' : 'Supprimer'}
                   </button>
                 </div>
               </div>
