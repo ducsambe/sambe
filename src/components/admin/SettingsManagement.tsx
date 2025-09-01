@@ -1,437 +1,441 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Settings,
-  Bell,
-  Globe,
-  Save,
-  RotateCcw,
-  User,
-  Mail,
-  Smartphone,
-  CreditCard,
-  Building,
+  Settings, 
+  Save, 
+  Globe, 
+  Palette, 
+  Shield, 
+  Mail, 
+  Phone,
   MapPin,
-  Download,
-  Upload
+  Building,
+  CreditCard,
+  Bell,
+  Eye,
+  EyeOff,
+  Upload,
+  Download
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 
 const SettingsManagement: React.FC = () => {
-  const { language, setLanguage } = useLanguage();
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    smsNotifications: false,
-    marketingEmails: false,
-    language: language,
-    timezone: 'Africa/Douala',
+  const { language } = useLanguage();
+  const [activeTab, setActiveTab] = useState('general');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [generalSettings, setGeneralSettings] = useState({
+    site_name: 'GEOCASA GROUP',
+    site_description: 'Le Cadastre et L\'Immobilier Facile',
+    contact_email: 'contact@geocasagroup.cm',
+    contact_phone: '+237 6XX XXX XXX',
+    address: 'Douala, Akwa - Cameroun',
+    default_language: 'fr',
     currency: 'XAF',
-    dateFormat: 'dd/MM/yyyy',
-    propertiesPerPage: 10
+    timezone: 'Africa/Douala'
   });
 
-  const [companyInfo, setCompanyInfo] = useState({
-    name: 'Geocasa',
-    email: 'contact@geocasa.com',
-    phone: '+237 6XX XXX XXX',
-    address: 'Douala, Cameroon',
-    taxId: '123456789',
-    currency: 'XAF'
+  const [paymentSettings, setPaymentSettings] = useState({
+    mtn_mobile_money: true,
+    orange_money: true,
+    bank_transfer: true,
+    credit_card: false,
+    commission_rate: 2.5,
+    min_reservation_amount: 100000,
+    reservation_duration_hours: 48
   });
 
-  const handleSettingChange = (setting: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [setting]: value
-    }));
+  const [notificationSettings, setNotificationSettings] = useState({
+    email_notifications: true,
+    sms_notifications: false,
+    push_notifications: true,
+    admin_notifications: true,
+    user_registration_notify: true,
+    property_inquiry_notify: true,
+    payment_notify: true
+  });
 
-    if (setting === 'language') {
-      setLanguage(value);
+  const [securitySettings, setSecuritySettings] = useState({
+    two_factor_auth: false,
+    session_timeout: 24,
+    password_min_length: 6,
+    require_email_verification: false,
+    max_login_attempts: 5,
+    lockout_duration: 30
+  });
+
+  const tabs = [
+    { id: 'general', label: language === 'en' ? 'General' : 'Général', icon: Settings },
+    { id: 'payments', label: language === 'en' ? 'Payments' : 'Paiements', icon: CreditCard },
+    { id: 'notifications', label: language === 'en' ? 'Notifications' : 'Notifications', icon: Bell },
+    { id: 'security', label: language === 'en' ? 'Security' : 'Sécurité', icon: Shield }
+  ];
+
+  const handleSaveSettings = async (settingsType: string, settings: any) => {
+    setIsSubmitting(true);
+    
+    try {
+      // In a real app, this would save to the database
+      localStorage.setItem(`geocasa_${settingsType}_settings`, JSON.stringify(settings));
+      toast.success(language === 'en' ? 'Settings saved successfully!' : 'Paramètres sauvegardés avec succès !');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast.error(language === 'en' ? 'Error saving settings' : 'Erreur lors de la sauvegarde');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleCompanyInfoChange = (field: string, value: string) => {
-    setCompanyInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'general':
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {language === 'en' ? 'General Settings' : 'Paramètres Généraux'}
+            </h3>
 
-  const saveSettings = () => {
-    toast.success(language === 'en' ? 'Settings saved successfully' : 'Paramètres enregistrés avec succès');
-  };
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'en' ? 'Site Name' : 'Nom du Site'}
+                </label>
+                <input
+                  type="text"
+                  value={generalSettings.site_name}
+                  onChange={(e) => setGeneralSettings(prev => ({ ...prev, site_name: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+                />
+              </div>
 
-  const resetSettings = () => {
-    setSettings({
-      emailNotifications: true,
-      pushNotifications: true,
-      smsNotifications: false,
-      marketingEmails: false,
-      language: language,
-      timezone: 'Africa/Douala',
-      currency: 'XAF',
-      dateFormat: 'dd/MM/yyyy',
-      propertiesPerPage: 10
-    });
-    toast.success(language === 'en' ? 'Settings reset to default' : 'Paramètres réinitialisés par défaut');
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'en' ? 'Contact Email' : 'Email de Contact'}
+                </label>
+                <input
+                  type="email"
+                  value={generalSettings.contact_email}
+                  onChange={(e) => setGeneralSettings(prev => ({ ...prev, contact_email: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'en' ? 'Contact Phone' : 'Téléphone de Contact'}
+                </label>
+                <input
+                  type="tel"
+                  value={generalSettings.contact_phone}
+                  onChange={(e) => setGeneralSettings(prev => ({ ...prev, contact_phone: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'en' ? 'Default Language' : 'Langue par Défaut'}
+                </label>
+                <select
+                  value={generalSettings.default_language}
+                  onChange={(e) => setGeneralSettings(prev => ({ ...prev, default_language: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+                >
+                  <option value="fr">Français</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'en' ? 'Site Description' : 'Description du Site'}
+              </label>
+              <textarea
+                value={generalSettings.site_description}
+                onChange={(e) => setGeneralSettings(prev => ({ ...prev, site_description: e.target.value }))}
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'en' ? 'Address' : 'Adresse'}
+              </label>
+              <input
+                type="text"
+                value={generalSettings.address}
+                onChange={(e) => setGeneralSettings(prev => ({ ...prev, address: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+              />
+            </div>
+
+            <button
+              onClick={() => handleSaveSettings('general', generalSettings)}
+              disabled={isSubmitting}
+              className="bg-gradient-to-r from-geocasa-blue to-geocasa-orange text-white py-3 px-6 rounded-lg hover:from-geocasa-blue-dark hover:to-geocasa-orange-dark transition-all duration-300 flex items-center disabled:opacity-50"
+            >
+              <Save className="h-5 w-5 mr-2" />
+              {language === 'en' ? 'Save General Settings' : 'Sauvegarder les Paramètres Généraux'}
+            </button>
+          </div>
+        );
+
+      case 'payments':
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {language === 'en' ? 'Payment Settings' : 'Paramètres de Paiement'}
+            </h3>
+
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold mb-4">{language === 'en' ? 'Payment Methods' : 'Méthodes de Paiement'}</h4>
+                <div className="space-y-3">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={paymentSettings.mtn_mobile_money}
+                      onChange={(e) => setPaymentSettings(prev => ({ ...prev, mtn_mobile_money: e.target.checked }))}
+                      className="h-4 w-4 text-geocasa-blue focus:ring-geocasa-blue border-gray-300 rounded mr-3"
+                    />
+                    <span>MTN Mobile Money</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={paymentSettings.orange_money}
+                      onChange={(e) => setPaymentSettings(prev => ({ ...prev, orange_money: e.target.checked }))}
+                      className="h-4 w-4 text-geocasa-blue focus:ring-geocasa-blue border-gray-300 rounded mr-3"
+                    />
+                    <span>Orange Money</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={paymentSettings.bank_transfer}
+                      onChange={(e) => setPaymentSettings(prev => ({ ...prev, bank_transfer: e.target.checked }))}
+                      className="h-4 w-4 text-geocasa-blue focus:ring-geocasa-blue border-gray-300 rounded mr-3"
+                    />
+                    <span>{language === 'en' ? 'Bank Transfer' : 'Virement Bancaire'}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'en' ? 'Commission Rate (%)' : 'Taux de Commission (%)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={paymentSettings.commission_rate}
+                    onChange={(e) => setPaymentSettings(prev => ({ ...prev, commission_rate: parseFloat(e.target.value) }))}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'en' ? 'Min Reservation Amount (XAF)' : 'Montant Min. Réservation (FCFA)'}
+                  </label>
+                  <input
+                    type="number"
+                    value={paymentSettings.min_reservation_amount}
+                    onChange={(e) => setPaymentSettings(prev => ({ ...prev, min_reservation_amount: parseInt(e.target.value) }))}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleSaveSettings('payment', paymentSettings)}
+              disabled={isSubmitting}
+              className="bg-gradient-to-r from-geocasa-blue to-geocasa-orange text-white py-3 px-6 rounded-lg hover:from-geocasa-blue-dark hover:to-geocasa-orange-dark transition-all duration-300 flex items-center disabled:opacity-50"
+            >
+              <Save className="h-5 w-5 mr-2" />
+              {language === 'en' ? 'Save Payment Settings' : 'Sauvegarder les Paramètres de Paiement'}
+            </button>
+          </div>
+        );
+
+      case 'notifications':
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {language === 'en' ? 'Notification Settings' : 'Paramètres de Notification'}
+            </h3>
+
+            <div className="space-y-4">
+              <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <div className="font-medium">{language === 'en' ? 'Email Notifications' : 'Notifications Email'}</div>
+                  <div className="text-sm text-gray-600">{language === 'en' ? 'Send notifications via email' : 'Envoyer les notifications par email'}</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notificationSettings.email_notifications}
+                  onChange={(e) => setNotificationSettings(prev => ({ ...prev, email_notifications: e.target.checked }))}
+                  className="h-4 w-4 text-geocasa-blue focus:ring-geocasa-blue border-gray-300 rounded"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <div className="font-medium">{language === 'en' ? 'SMS Notifications' : 'Notifications SMS'}</div>
+                  <div className="text-sm text-gray-600">{language === 'en' ? 'Send notifications via SMS' : 'Envoyer les notifications par SMS'}</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notificationSettings.sms_notifications}
+                  onChange={(e) => setNotificationSettings(prev => ({ ...prev, sms_notifications: e.target.checked }))}
+                  className="h-4 w-4 text-geocasa-blue focus:ring-geocasa-blue border-gray-300 rounded"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <div className="font-medium">{language === 'en' ? 'New User Registration' : 'Nouvelle Inscription'}</div>
+                  <div className="text-sm text-gray-600">{language === 'en' ? 'Notify admins of new registrations' : 'Notifier les admins des nouvelles inscriptions'}</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notificationSettings.user_registration_notify}
+                  onChange={(e) => setNotificationSettings(prev => ({ ...prev, user_registration_notify: e.target.checked }))}
+                  className="h-4 w-4 text-geocasa-blue focus:ring-geocasa-blue border-gray-300 rounded"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <div className="font-medium">{language === 'en' ? 'Property Inquiries' : 'Demandes de Propriétés'}</div>
+                  <div className="text-sm text-gray-600">{language === 'en' ? 'Notify of property inquiries' : 'Notifier des demandes de propriétés'}</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notificationSettings.property_inquiry_notify}
+                  onChange={(e) => setNotificationSettings(prev => ({ ...prev, property_inquiry_notify: e.target.checked }))}
+                  className="h-4 w-4 text-geocasa-blue focus:ring-geocasa-blue border-gray-300 rounded"
+                />
+              </label>
+            </div>
+
+            <button
+              onClick={() => handleSaveSettings('notification', notificationSettings)}
+              disabled={isSubmitting}
+              className="bg-gradient-to-r from-geocasa-blue to-geocasa-orange text-white py-3 px-6 rounded-lg hover:from-geocasa-blue-dark hover:to-geocasa-orange-dark transition-all duration-300 flex items-center disabled:opacity-50"
+            >
+              <Save className="h-5 w-5 mr-2" />
+              {language === 'en' ? 'Save Notification Settings' : 'Sauvegarder les Paramètres de Notification'}
+            </button>
+          </div>
+        );
+
+      case 'security':
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {language === 'en' ? 'Security Settings' : 'Paramètres de Sécurité'}
+            </h3>
+
+            <div className="space-y-4">
+              <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <div className="font-medium">{language === 'en' ? 'Two-Factor Authentication' : 'Authentification à Deux Facteurs'}</div>
+                  <div className="text-sm text-gray-600">{language === 'en' ? 'Require 2FA for admin accounts' : 'Exiger 2FA pour les comptes admin'}</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={securitySettings.two_factor_auth}
+                  onChange={(e) => setSecuritySettings(prev => ({ ...prev, two_factor_auth: e.target.checked }))}
+                  className="h-4 w-4 text-geocasa-blue focus:ring-geocasa-blue border-gray-300 rounded"
+                />
+              </label>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'en' ? 'Session Timeout (hours)' : 'Expiration Session (heures)'}
+                  </label>
+                  <input
+                    type="number"
+                    value={securitySettings.session_timeout}
+                    onChange={(e) => setSecuritySettings(prev => ({ ...prev, session_timeout: parseInt(e.target.value) }))}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'en' ? 'Min Password Length' : 'Longueur Min. Mot de Passe'}
+                  </label>
+                  <input
+                    type="number"
+                    value={securitySettings.password_min_length}
+                    onChange={(e) => setSecuritySettings(prev => ({ ...prev, password_min_length: parseInt(e.target.value) }))}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleSaveSettings('security', securitySettings)}
+              disabled={isSubmitting}
+              className="bg-gradient-to-r from-geocasa-blue to-geocasa-orange text-white py-3 px-6 rounded-lg hover:from-geocasa-blue-dark hover:to-geocasa-orange-dark transition-all duration-300 flex items-center disabled:opacity-50"
+            >
+              <Save className="h-5 w-5 mr-2" />
+              {language === 'en' ? 'Save Security Settings' : 'Sauvegarder les Paramètres de Sécurité'}
+            </button>
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {language === 'en' ? 'Settings Management' : 'Gestion des Paramètres'}
-          </h1>
-          <p className="text-gray-600">
-            {language === 'en' 
-              ? 'Customize your application preferences' 
-              : 'Personnalisez vos préférences d\'application'}
-          </p>
-        </div>
-        <div className="flex gap-3 mt-4 sm:mt-0">
-          <button
-            onClick={resetSettings}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            {language === 'en' ? 'Reset' : 'Réinitialiser'}
-          </button>
-          <button
-            onClick={saveSettings}
-            className="bg-gradient-to-r from-geocasa-blue to-geocasa-orange text-white px-4 py-2 rounded-lg hover:from-geocasa-blue-dark hover:to-geocasa-orange-dark transition-all duration-300 flex items-center"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {language === 'en' ? 'Save Changes' : 'Enregistrer'}
-          </button>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {language === 'en' ? 'Settings Management' : 'Gestion des Paramètres'}
+        </h1>
+        <p className="text-gray-600">
+          {language === 'en' ? 'Configure platform settings and preferences' : 'Configurez les paramètres et préférences de la plateforme'}
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Notification Settings */}
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <Bell className="h-5 w-5 mr-2 text-geocasa-blue" />
-            {language === 'en' ? 'Notification Preferences' : 'Préférences de Notification'}
-          </h3>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">
-                  {language === 'en' ? 'Email Notifications' : 'Notifications par Email'}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {language === 'en' 
-                    ? 'Receive important updates via email' 
-                    : 'Recevez des mises à jour importantes par email'}
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={settings.emailNotifications}
-                  onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
-                  className="sr-only peer" 
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-geocasa-blue"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">
-                  {language === 'en' ? 'Push Notifications' : 'Notifications Push'}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {language === 'en' 
-                    ? 'Get instant alerts on your device' 
-                    : 'Recevez des alertes instantanées sur votre appareil'}
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={settings.pushNotifications}
-                  onChange={(e) => handleSettingChange('pushNotifications', e.target.checked)}
-                  className="sr-only peer" 
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-geocasa-blue"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">
-                  {language === 'en' ? 'SMS Notifications' : 'Notifications SMS'}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {language === 'en' 
-                    ? 'Receive text message alerts' 
-                    : 'Recevez des alertes par message texte'}
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={settings.smsNotifications}
-                  onChange={(e) => handleSettingChange('smsNotifications', e.target.checked)}
-                  className="sr-only peer" 
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-geocasa-blue"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">
-                  {language === 'en' ? 'Marketing Emails' : 'Emails Marketing'}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {language === 'en' 
-                    ? 'Receive promotional offers and updates' 
-                    : 'Recevez des offres promotionnelles et des mises à jour'}
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={settings.marketingEmails}
-                  onChange={(e) => handleSettingChange('marketingEmails', e.target.checked)}
-                  className="sr-only peer" 
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-geocasa-blue"></div>
-              </label>
-            </div>
-          </div>
+      {/* Tabs */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6">
+            {tabs.map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-geocasa-blue text-geocasa-blue'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="h-5 w-5 mr-2" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Application Settings */}
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <Settings className="h-5 w-5 mr-2 text-geocasa-orange" />
-            {language === 'en' ? 'Application Settings' : 'Paramètres de l\'Application'}
-          </h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'en' ? 'Language' : 'Langue'}
-              </label>
-              <select
-                value={settings.language}
-                onChange={(e) => handleSettingChange('language', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-              >
-                <option value="en">English</option>
-                <option value="fr">Français</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'en' ? 'Timezone' : 'Fuseau Horaire'}
-              </label>
-              <select
-                value={settings.timezone}
-                onChange={(e) => handleSettingChange('timezone', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-              >
-                <option value="Africa/Douala">Douala (GMT+1)</option>
-                <option value="Africa/Lagos">Lagos (GMT+1)</option>
-                <option value="Africa/Johannesburg">Johannesburg (GMT+2)</option>
-                <option value="Europe/Paris">Paris (GMT+1)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'en' ? 'Currency' : 'Devise'}
-              </label>
-              <select
-                value={settings.currency}
-                onChange={(e) => handleSettingChange('currency', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-              >
-                <option value="XAF">XAF (Franc CFA)</option>
-                <option value="USD">USD (US Dollar)</option>
-                <option value="EUR">EUR (Euro)</option>
-                <option value="XOF">XOF (Franc CFA Ouest)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'en' ? 'Date Format' : 'Format de Date'}
-              </label>
-              <select
-                value={settings.dateFormat}
-                onChange={(e) => handleSettingChange('dateFormat', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-              >
-                <option value="dd/MM/yyyy">DD/MM/YYYY</option>
-                <option value="MM/dd/yyyy">MM/DD/YYYY</option>
-                <option value="yyyy-MM-dd">YYYY-MM-DD</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'en' ? 'Properties Per Page' : 'Biens par Page'}
-              </label>
-              <select
-                value={settings.propertiesPerPage}
-                onChange={(e) => handleSettingChange('propertiesPerPage', parseInt(e.target.value))}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Company Information */}
-      <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Building className="h-5 w-5 mr-2 text-gray-600" />
-          {language === 'en' ? 'Company Information' : 'Informations de l\'Entreprise'}
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'en' ? 'Company Name' : 'Nom de l\'Entreprise'}
-            </label>
-            <input
-              type="text"
-              value={companyInfo.name}
-              onChange={(e) => handleCompanyInfoChange('name', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="email"
-                value={companyInfo.email}
-                onChange={(e) => handleCompanyInfoChange('email', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'en' ? 'Phone Number' : 'Numéro de Téléphone'}
-            </label>
-            <div className="relative">
-              <Smartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="tel"
-                value={companyInfo.phone}
-                onChange={(e) => handleCompanyInfoChange('phone', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'en' ? 'Tax ID' : 'Numéro d\'Identification Fiscale'}
-            </label>
-            <div className="relative">
-              <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                value={companyInfo.taxId}
-                onChange={(e) => handleCompanyInfoChange('taxId', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'en' ? 'Address' : 'Adresse'}
-            </label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <textarea
-                rows={2}
-                value={companyInfo.address}
-                onChange={(e) => handleCompanyInfoChange('address', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Import/Export */}
-      <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Globe className="h-5 w-5 mr-2 text-gray-600" />
-          {language === 'en' ? 'Data Management' : 'Gestion des Données'}
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="border border-gray-200 rounded-lg p-4">
-            <h4 className="font-medium mb-3 flex items-center">
-              <Download className="h-4 w-4 mr-2 text-geocasa-blue" />
-              {language === 'en' ? 'Export Data' : 'Exporter les Données'}
-            </h4>
-            <p className="text-sm text-gray-600 mb-4">
-              {language === 'en' 
-                ? 'Download your data in various formats for backup or analysis' 
-                : 'Téléchargez vos données dans différents formats pour sauvegarde ou analyse'}
-            </p>
-            <div className="space-y-2">
-              <button className="w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                {language === 'en' ? 'Export as CSV' : 'Exporter en CSV'}
-              </button>
-              <button className="w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                {language === 'en' ? 'Export as Excel' : 'Exporter en Excel'}
-              </button>
-              <button className="w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                {language === 'en' ? 'Export as JSON' : 'Exporter en JSON'}
-              </button>
-            </div>
-          </div>
-
-          <div className="border border-gray-200 rounded-lg p-4">
-            <h4 className="font-medium mb-3 flex items-center">
-              <Upload className="h-4 w-4 mr-2 text-geocasa-orange" />
-              {language === 'en' ? 'Import Data' : 'Importer des Données'}
-            </h4>
-            <p className="text-sm text-gray-60 mb-4">
-              {language === 'en' 
-                ? 'Upload data from external sources to update your records' 
-                : 'Importez des données de sources externes pour mettre à jour vos enregistrements'}
-            </p>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-              <div className="text-gray-500 mb-2">
-                {language === 'en' ? 'Drag & drop files here' : 'Glissez-déposez les fichiers ici'}
-              </div>
-              <div className="text-sm text-gray-400 mb-3">
-                {language === 'en' ? 'or' : 'ou'}
-              </div>
-              <label className="cursor-pointer bg-geocasa-blue text-white px-4 py-2 rounded-lg hover:bg-geocasa-blue-dark transition-colors">
-                <span>{language === 'en' ? 'Browse Files' : 'Parcourir les Fichiers'}</span>
-                <input type="file" className="hidden" />
-              </label>
-            </div>
-          </div>
+        <div className="p-6">
+          {renderTabContent()}
         </div>
       </div>
     </div>

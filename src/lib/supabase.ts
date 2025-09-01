@@ -33,12 +33,12 @@ export const mockUsers = [
   },
   {
     id: 'e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a15',
-    username: 'geocasa_admin',
-    email: 'geocasa_admin@geocasa.com',
-    password_hash: 'geocasa2024',
-    first_name: 'GEOCASA',
-    last_name: 'Administrator',
-    phone: '+237 699 000 000',
+    username: 'client2',
+    email: 'client2@geocasa.com',
+    password_hash: 'client123',
+    first_name: 'Marie',
+    last_name: 'Kouam',
+    phone: '+237 677 890 123',
     address: null,
     profile_image_url: null,
     is_active: true,
@@ -47,6 +47,56 @@ export const mockUsers = [
   }
 ];
 
+export const mockAdmins = [
+  {
+    id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    username: 'admin',
+    email: 'admin@geocasa.com',
+    password_hash: 'admin123',
+    first_name: 'Super',
+    last_name: 'Admin',
+    phone: '+237 699 000 001',
+    role: 'admin',
+    permissions: ['all'],
+    department: 'Direction',
+    profile_image_url: null,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12',
+    username: 'geocasa_admin',
+    email: 'geocasa_admin@geocasa.com',
+    password_hash: 'geocasa2024',
+    first_name: 'GEOCASA',
+    last_name: 'Administrator',
+    phone: '+237 699 000 002',
+    role: 'admin',
+    permissions: ['properties', 'users', 'transactions'],
+    department: 'Administration',
+    profile_image_url: null,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a13',
+    username: 'manager',
+    email: 'manager@geocasa.com',
+    password_hash: 'manager123',
+    first_name: 'Property',
+    last_name: 'Manager',
+    phone: '+237 699 000 003',
+    role: 'manager',
+    permissions: ['properties', 'transactions'],
+    department: 'Gestion',
+    profile_image_url: null,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
 export const mockProperties = [
   {
     id: 'prop-1',
