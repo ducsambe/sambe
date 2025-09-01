@@ -21,7 +21,7 @@ const HomePage: React.FC = () => {
   // Create featured images from properties
   const featuredImages = properties.slice(0, 4).map(property => ({
     id: property.id,
-    image: property.property_images?.[0]?.image_url || 'https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    image: property.images?.[0] || 'https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=1200',
     location: property.location || (language === 'en' ? 'Location not specified' : 'Localisation non spécifiée'),
     propertyId: property.id
   }));
@@ -32,7 +32,7 @@ const HomePage: React.FC = () => {
     .slice(0, 4)
     .map(property => ({
       id: property.id,
-      thumbnail: property.property_images?.[0]?.image_url || 'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&cs=tinysrgb&w=400',
+      thumbnail: property.images?.[0] || 'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&cs=tinysrgb&w=400',
       location: property.location || (language === 'en' ? 'Location not specified' : 'Localisation non spécifiée'),
       propertyId: property.id
     }));

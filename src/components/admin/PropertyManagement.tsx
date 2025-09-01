@@ -13,12 +13,12 @@ import {
   TrendingUp,
   Save,
   X,
-  Upload,
   Image as ImageIcon
 } from 'lucide-react';
 import { useProperties } from '../../hooks/useProperties';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import ImageUploader from './ImageUploader';
 import toast from 'react-hot-toast';
 
 const PropertyManagement: React.FC = () => {
@@ -43,7 +43,7 @@ const PropertyManagement: React.FC = () => {
     latitude: '',
     longitude: '',
     features: '',
-    images: '',
+    images: [] as string[],
     presentation_video_url: '',
     status: 'disponible'
   });
@@ -74,7 +74,7 @@ const PropertyManagement: React.FC = () => {
       latitude: '',
       longitude: '',
       features: '',
-      images: '',
+      images: [],
       presentation_video_url: '',
       status: 'disponible'
     });
@@ -99,7 +99,7 @@ const PropertyManagement: React.FC = () => {
       latitude: property.latitude?.toString() || '',
       longitude: property.longitude?.toString() || '',
       features: Array.isArray(property.features) ? property.features.join(', ') : '',
-      images: Array.isArray(property.images) ? property.images.join(', ') : '',
+      images: Array.isArray(property.images) ? property.images : [],
       presentation_video_url: property.presentation_video_url || '',
       status: property.status || 'disponible'
     });
@@ -122,7 +122,7 @@ const PropertyManagement: React.FC = () => {
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,
         longitude: formData.longitude ? parseFloat(formData.longitude) : null,
         features: formData.features ? formData.features.split(',').map(f => f.trim()).filter(f => f) : [],
-        images: formData.images ? formData.images.split(',').map(img => img.trim()).filter(img => img) : [],
+        images: formData.images,
         presentation_video_url: formData.presentation_video_url.trim() || null,
         status: formData.status
       };
@@ -568,18 +568,11 @@ const PropertyManagement: React.FC = () => {
                     {language === 'en' ? 'Media & Features' : 'Médias & Caractéristiques'}
                   </h3>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'en' ? 'Images (URLs separated by commas)' : 'Images (URLs séparées par des virgules)'}
-                    </label>
-                    <textarea
-                      value={formData.images}
-                      onChange={(e) => setFormData(prev => ({ ...prev, images: e.target.value }))}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-geocasa-blue focus:border-transparent outline-none"
-                      placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-                    />
-                  </div>
+                  <ImageUploader
+                    images={formData.images}
+                    onImagesChange={(newImages) => setFormData(prev => ({ ...prev, images: newImages }))}
+                    maxImages={10}
+                  />
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -679,8 +672,7 @@ const PropertyManagement: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img 
-                          src={property.property_images?.[0]?.image_url || 
-                               property.images?.[0] || 
+                          src={property.images?.[0] || 
                                'https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=800'} 
                           alt={property.title}
                           className="h-12 w-12 rounded-lg object-cover mr-4"
@@ -699,7 +691,7 @@ const PropertyManagement: React.FC = () => {
                       <div className="flex items-center">
                         <TypeIcon className="h-4 w-4 mr-2 text-geocasa-blue" />
                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize">
-                          {property.property_type || property.type}
+                          {property.type}
                         </span>
                       </div>
                     </td>
@@ -795,10 +787,10 @@ const PropertyManagement: React.FC = () => {
                 {/* Images */}
                 <div>
                   <div className="grid grid-cols-2 gap-4 mb-4">
-                    {(viewingProperty.property_images || viewingProperty.images || []).slice(0, 4).map((image: string, index: number) => (
+                    {(viewingProperty.images || []).slice(0, 4).map((image: string, index: number) => (
                       <img 
                         key={index}
-                        src={typeof image === 'string' ? image : image.image_url}
+                        src={image}
                         alt={`${viewingProperty.title} - Image ${index + 1}`}
                         className="w-full h-32 object-cover rounded-lg"
                       />
@@ -828,7 +820,7 @@ const PropertyManagement: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm text-gray-600">{language === 'en' ? 'Type' : 'Type'}</div>
-                      <div className="font-semibold capitalize">{viewingProperty.type || viewingProperty.property_type}</div>
+                      <div className="font-semibold capitalize">{viewingProperty.type}</div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm text-gray-600">{language === 'en' ? 'Status' : 'Statut'}</div>
@@ -836,7 +828,7 @@ const PropertyManagement: React.FC = () => {
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm text-gray-600">{language === 'en' ? 'Area' : 'Surface'}</div>
-                      <div className="font-semibold">{viewingProperty.area_sqm} m²</div>
+                      <div className="font-semibold">{viewingProperty.area_sqm || 'N/A'} m²</div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="text-sm text-gray-600">{language === 'en' ? 'Price' : 'Prix'}</div>
@@ -848,7 +840,7 @@ const PropertyManagement: React.FC = () => {
                     <div className="text-sm text-gray-600 mb-2">{language === 'en' ? 'Location' : 'Localisation'}</div>
                     <div className="flex items-center">
                       <MapPin className="h-4 w-4 mr-2 text-geocasa-orange" />
-                      <span className="font-semibold">{viewingProperty.location}, {viewingProperty.city}</span>
+                      <span className="font-semibold">{viewingProperty.location}{viewingProperty.city ? `, ${viewingProperty.city}` : ''}</span>
                     </div>
                   </div>
 

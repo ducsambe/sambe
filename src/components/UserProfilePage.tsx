@@ -532,7 +532,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ onClose }) => {
                   <div key={property.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                     <div className="relative">
                       <img 
-                        src={property.property_images?.[0]?.image_url || 'https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=400'} 
+                        src={property.images?.[0] || 'https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=400'} 
                         alt={property.title}
                         className="w-full h-48 object-cover"
                       />

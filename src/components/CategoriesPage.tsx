@@ -33,25 +33,25 @@ const CategoriesPage: React.FC = () => {
       id: 'terrain', 
       label: language === 'en' ? 'Land' : 'Terrains',
       icon: TreePine,
-      count: properties.filter(p => p.property_type === 'terrain' || p.type === 'terrain').length
+      count: properties.filter(p => p.type === 'terrain').length
     },
     { 
       id: 'maison', 
       label: language === 'en' ? 'Houses' : 'Maisons',
       icon: Home,
-      count: properties.filter(p => p.property_type === 'maison' || p.type === 'maison').length
+      count: properties.filter(p => p.type === 'maison').length
     },
     { 
       id: 'appartement', 
       label: language === 'en' ? 'Apartments' : 'Appartements',
       icon: Building,
-      count: properties.filter(p => p.property_type === 'appartement' || p.type === 'appartement').length
+      count: properties.filter(p => p.type === 'appartement').length
     },
     { 
       id: 'lot', 
       label: language === 'en' ? 'Lots' : 'Lots',
       icon: TrendingUp,
-      count: properties.filter(p => p.property_type === 'lot' || p.type === 'lot').length
+      count: properties.filter(p => p.type === 'lot').length
     }
   ];
 
@@ -98,7 +98,7 @@ const CategoriesPage: React.FC = () => {
     // Type filter
     if (filters.type !== 'all') {
       filtered = filtered.filter(property => 
-        property.property_type === filters.type || property.type === filters.type
+        property.type === filters.type
       );
     }
 

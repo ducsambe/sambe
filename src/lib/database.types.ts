@@ -56,30 +56,48 @@ export interface Database {
       admins: {
         Row: {
           id: string
-          user_id: string
+          username: string
+          email: string
+          password_hash: string
+          first_name: string | null
+          last_name: string | null
+          phone: string | null
           role: 'admin' | 'staff' | 'manager'
           permissions: string[] | null
           department: string | null
+          profile_image_url: string | null
           is_active: boolean
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
-          user_id: string
+          username: string
+          email: string
+          password_hash: string
+          first_name?: string | null
+          last_name?: string | null
+          phone?: string | null
           role: 'admin' | 'staff' | 'manager'
           permissions?: string[] | null
           department?: string | null
+          profile_image_url?: string | null
           is_active?: boolean
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
+          username?: string
+          email?: string
+          password_hash?: string
+          first_name?: string | null
+          last_name?: string | null
+          phone?: string | null
           role?: 'admin' | 'staff' | 'manager'
           permissions?: string[] | null
           department?: string | null
+          profile_image_url?: string | null
           is_active?: boolean
           created_at?: string
           updated_at?: string

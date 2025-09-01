@@ -2,11 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured, mockProperties } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 
-type Property = Database['public']['Tables']['properties']['Row'] & {
-  property_images?: { image_url: string }[];
-  plots?: any[];
-  reviews?: any[];
-};
+type Property = Database['public']['Tables']['properties']['Row'];
 
 export const useProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -25,10 +21,8 @@ export const useProperties = () => {
       // Transform mock data to match expected format
       const transformedProperties = allMockProperties.map(property => ({
         ...property,
-        property_images: property.images?.map(url => ({ image_url: url })) || [],
-        property_type: property.type, // Map type to property_type for consistency
-        plots: [],
-        reviews: []
+        // Ensure images is always an array
+        images: Array.isArray(property.images) ? property.images : []
       }));
       
       setProperties(transformedProperties);
@@ -41,23 +35,13 @@ export const useProperties = () => {
       const { data, error } = await supabase
         .from('properties')
         .select(`
-          *,
-          images
+          *
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      // Transform data to match expected format
-      const transformedData = (data || []).map(property => ({
-        ...property,
-        property_images: property.images?.map(url => ({ image_url: url })) || [],
-        property_type: property.type,
-        plots: [],
-        reviews: []
-      }));
-      
-      setProperties(transformedData);
+      setProperties(data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
     } finally {
@@ -79,30 +63,20 @@ export const useProperties = () => {
         if (!property) throw new Error('Propriété non trouvée');
         return {
           ...property,
-          property_images: property.images?.map(url => ({ image_url: url })) || [],
-          property_type: property.type,
-          plots: [],
-          reviews: []
+          images: Array.isArray(property.images) ? property.images : []
         };
       }
       
       const { data, error } = await supabase
         .from('properties')
         .select(`
-          *,
-          images
+          *
         `)
         .eq('id', id)
         .single();
 
       if (error) throw error;
-      return {
-        ...data,
-        property_images: data.images?.map(url => ({ image_url: url })) || [],
-        property_type: data.type,
-        plots: [],
-        reviews: []
-      };
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Propriété non trouvée');
     }
@@ -110,7 +84,7 @@ export const useProperties = () => {
 
   const getPropertiesByType = (type: string) => {
     if (type === 'all') return properties;
-    return properties.filter(property => property.property_type === type || property.type === type);
+    return properties.filter(property => property.type === type);
   };
 
   const searchProperties = (query: string) => {
@@ -133,7 +107,7 @@ export const useProperties = () => {
   }) => {
     return properties.filter(property => {
       if (filters.type && filters.type !== 'all' && 
-          property.property_type !== filters.type && property.type !== filters.type) {
+          property.type !== filters.type) {
         return false;
       }
       if (filters.minPrice && property.price < filters.minPrice) {
