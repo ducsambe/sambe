@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, MapPin, Home, Ruler, MessageCircle, Heart, Play } from 'lucide-react';
 import { Database } from '../lib/database.types';
 
-type Property = Database['public']['Tables']['properties']['Row'] & {
-  property_images?: { image_url: string }[];
-  plots?: any[];
-};
+type Property = Database['public']['Tables']['properties']['Row'];
 
 interface PropertyModalProps {
   property: Property;
@@ -23,8 +20,7 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
 
-  const images = property.property_images?.map(img => img.image_url) || 
-                 property.images || 
+  const images = property.images || 
                  ['https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=800'];
 
   const formatPrice = (price: number) => {
@@ -178,20 +174,20 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <Home className="h-6 w-6 mx-auto mb-2 text-emerald-600" />
                     <div className="text-sm text-gray-600">Type</div>
-                    <div className="font-semibold capitalize">{property.type}</div>
+                    <div className="font-semibold capitalize">{property.type || 'N/A'}</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <Ruler className="h-6 w-6 mx-auto mb-2 text-emerald-600" />
                     <div className="text-sm text-gray-600">Surface</div>
-                    <div className="font-semibold">{property.area_sqm || 0} m²</div>
+                    <div className="font-semibold">{property.area_sqm || 'N/A'} m²</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <div className={`w-6 h-6 mx-auto mb-2 rounded-full ${
-                      property.status === 'disponible' ? 'bg-emerald-500' :
+                      property.status === 'disponible' ? 'bg-green-500' :
                       property.status === 'réservé' ? 'bg-yellow-500' : 'bg-red-500'
                     }`}></div>
                     <div className="text-sm text-gray-600">Statut</div>
-                    <div className="font-semibold capitalize">{property.status}</div>
+                    <div className="font-semibold capitalize">{property.status || 'N/A'}</div>
                   </div>
                 </div>
 
@@ -208,9 +204,9 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
                   {property.features && property.features.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2">
                     {property.features.map((feature, index) => (
-                      <div key={index} className="flex items-center p-2 bg-blue-50 rounded-lg">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3" />
-                        <span className="text-sm text-emerald-800">{feature}</span>
+                      <div key={index} className="flex items-center p-2 bg-green-50 rounded-lg">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-3" />
+                        <span className="text-sm text-green-800">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -220,7 +216,7 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
                 </div>
 
                 {/* Agent Info */}
-                <div className="bg-gradient-to-r from-emerald-50 to-blue-50 p-4 rounded-xl mb-6">
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-xl mb-6">
                   <h3 className="font-semibold mb-2">Votre conseiller</h3>
                   <div className="text-gray-700">
                     <div className="font-medium">Jean-Claude MBALLA</div>
@@ -232,7 +228,7 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
                 <div className="flex flex-wrap gap-4">
                   <button
                     onClick={handleWhatsApp}
-                    className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center shadow-lg"
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center shadow-lg"
                   >
                     <MessageCircle className="h-5 w-5 mr-2" />
                     WhatsApp

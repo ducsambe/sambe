@@ -92,6 +92,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   };
 
   const propertyImage = property.property_images?.[0]?.image_url || 
+    property.images?.[0] || 
     'https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=400';
 
   if (viewMode === 'list') {
@@ -121,8 +122,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(property.status || 'available')}`}>
                 {getStatusLabel(property.status || 'available')}
               </span>
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(property.property_type || 'maison')}`}>
-                {getTypeLabel(property.property_type || 'maison')}
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(property.type || 'maison')}`}>
+                {getTypeLabel(property.type || 'maison')}
               </span>
             </div>
           </div>
@@ -210,8 +211,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(property.status || 'available')}`}>
             {getStatusLabel(property.status || 'available')}
           </span>
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(property.property_type || property.type || 'maison')}`}>
-            {getTypeLabel(property.property_type || property.type || 'maison')}
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(property.type || 'maison')}`}>
+            {getTypeLabel(property.type || 'maison')}
           </span>
         </div>
         
