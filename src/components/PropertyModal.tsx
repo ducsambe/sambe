@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, MapPin, Home, Ruler, MessageCircle, Heart, Play } from 'lucide-react';
 import { Database } from '../lib/database.types';
+import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
+import toast from 'react-hot-toast';
 
 type Property = Database['public']['Tables']['properties']['Row'];
 
@@ -19,6 +22,8 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
+  const { user } = useAuth();
+  const { language } = useLanguage();
 
   const images = property.images || 
                  ['https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=800'];
@@ -44,11 +49,20 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
   };
 
   const handleWhatsApp = () => {
-    const message = `Bonjour, je suis intéressé(e) par le bien: ${property.title} - ${formatPrice(property.price)} situé à ${property.location}. Pouvez-vous me donner plus d'informations ?`;
+    const message = language === 'en'
+      ? `Hello, I'm interested in the property: ${property.title} - ${formatPrice(property.price)} located in ${property.location}. Can you provide more information?`
+      : `Bonjour, je suis intéressé(e) par le bien: ${property.title} - ${formatPrice(property.price)} situé à ${property.location}. Pouvez-vous me donner plus d'informations ?`;
     const whatsappUrl = `https://wa.me/237670123456?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
+  const handleFavoriteClick = () => {
+    if (!user) {
+      toast.error(language === 'en' ? 'Please login to add favorites' : 'Veuillez vous connecter pour ajouter aux favoris');
+      return;
+    }
+    onToggleFavorite(property.id);
+  };
   if (images.length === 0) {
     images.push('https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=800');
   }
@@ -235,7 +249,7 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
                   </button>
                   
                   <button
-                    onClick={() => onToggleFavorite(property.id)}
+                    onClick={handleFavoriteClick}
                     className={`py-3 px-6 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center shadow-lg ${
                       isFavorite
                         ? 'bg-red-500 hover:bg-red-600 text-white'
@@ -243,7 +257,10 @@ const PropertyModal: React.FC<PropertyModalProps> = ({
                     }`}
                   >
                     <Heart className={`h-5 w-5 mr-2 ${isFavorite ? 'fill-current' : ''}`} />
-                    {isFavorite ? 'Retiré' : 'Favoris'}
+                    {isFavorite 
+                      ? (language === 'en' ? 'Remove' : 'Retirer')
+                      : (language === 'en' ? 'Add to Favorites' : 'Ajouter aux Favoris')
+                    }
                   </button>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Search, Menu, Heart, User, LogOut, Settings, Bell, Shield } from 'lucide-react';
+import { Search, Menu, Heart, User, LogOut, Settings, Bell, Shield, Star } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useFavorites } from '../hooks/useFavorites';
 import { useLanguage } from '../contexts/LanguageContext';
 import MobileMenu from './MobileMenu';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -14,6 +15,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, activeSection, onSectionChange }) => {
   const { user, userProfile, signOut } = useAuth();
+  const { favorites } = useFavorites();
   const { language } = useLanguage();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -111,8 +113,16 @@ const Layout: React.FC<LayoutProps> = ({ children, activeSection, onSectionChang
               </button>
 
               {/* Favorites Button */}
-              <button className="p-2 text-gray-600 hover:text-geocasa-orange hover:bg-gray-50 rounded-lg transition-all">
+              <button 
+                onClick={() => handleSectionChange('favorites')}
+                className="relative p-2 text-gray-600 hover:text-geocasa-orange hover:bg-gray-50 rounded-lg transition-all"
+              >
                 <Heart className="h-5 w-5" />
+                {favorites.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {favorites.length}
+                  </span>
+                )}
               </button>
 
               {/* User Menu */}
@@ -150,7 +160,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeSection, onSectionChang
                       
                       <button 
                         onClick={() => {
-                          setShowProfile(true);
+                          handleSectionChange('profile');
                           setShowUserMenu(false);
                         }}
                         className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 transition-colors"
@@ -162,6 +172,22 @@ const Layout: React.FC<LayoutProps> = ({ children, activeSection, onSectionChang
                       <button className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 transition-colors">
                         <Bell className="h-4 w-4 mr-3" />
                         {language === 'en' ? 'Notifications' : 'Notifications'}
+                      </button>
+                      
+                      <button 
+                        onClick={() => {
+                          handleSectionChange('favorites');
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 transition-colors"
+                      >
+                        <Heart className="h-4 w-4 mr-3" />
+                        {language === 'en' ? 'My Favorites' : 'Mes Favoris'}
+                        {favorites.length > 0 && (
+                          <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {favorites.length}
+                          </span>
+                        )}
                       </button>
                       
                       <button 

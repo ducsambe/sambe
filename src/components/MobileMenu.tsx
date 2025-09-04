@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, User, Heart, Search, Globe, Shield, LogOut } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useFavorites } from '../hooks/useFavorites';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface MobileMenuProps {
@@ -17,6 +18,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onSectionChange 
 }) => {
   const { user, userProfile, signOut } = useAuth();
+  const { favorites } = useFavorites();
   const { language, setLanguage } = useLanguage();
 
   const handleSectionChange = (section: string) => {
@@ -130,9 +132,17 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             <span>{language === 'en' ? 'Search' : 'Rechercher'}</span>
           </button>
           
-          <button className="w-full flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+          <button 
+            onClick={() => handleSectionChange('favorites')}
+            className="w-full flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+          >
             <Heart className="h-5 w-5 mr-3" />
-            <span>{language === 'en' ? 'Favorites' : 'Favoris'}</span>
+            <span className="flex-1">{language === 'en' ? 'Favorites' : 'Favoris'}</span>
+            {favorites.length > 0 && (
+              <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {favorites.length}
+              </span>
+            )}
           </button>
 
           <button

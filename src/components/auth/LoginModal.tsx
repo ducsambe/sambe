@@ -50,8 +50,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         // Direct login with email/phone and password
         const result = await signIn(formData.email.trim(), formData.password);
         if (result.success) {
-          toast.success(language === 'en' ? 'Welcome back!' : 'Bon retour !');
-          onClose();
+          // Small delay to ensure state is updated
+          setTimeout(() => {
+            toast.success(language === 'en' ? 'Welcome back!' : 'Bon retour !');
+            onClose();
+          }, 100);
         } else {
           toast.error(result.error || (language === 'en' ? 'Login failed' : 'Échec de la connexion'));
         }
@@ -68,8 +71,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         );
         
         if (result.success) {
-          toast.success(language === 'en' ? 'Account created successfully!' : 'Compte créé avec succès !');
-          onClose();
+          // Small delay to ensure state is updated
+          setTimeout(() => {
+            toast.success(language === 'en' ? 'Account created successfully!' : 'Compte créé avec succès !');
+            onClose();
+          }, 100);
         } else {
           toast.error(result.error || (language === 'en' ? 'Registration failed' : 'Échec de l\'inscription'));
         }

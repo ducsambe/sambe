@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured, mockUsers } from '../lib/supabase';
 import { Database } from '../lib/database.types';
+import toast from 'react-hot-toast';
 
 type UserProfile = Database['public']['Tables']['users']['Row'];
 
@@ -8,20 +9,28 @@ export const useAuth = () => {
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem('geocasa_user');
-    if (storedUser) {
+    const initializeAuth = () => {
       try {
-        const userData = JSON.parse(storedUser);
-        setUser({ id: userData.id, email: userData.email });
-        setUserProfile(userData);
+        // Check for stored user session
+        const storedUser = localStorage.getItem('geocasa_user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          setUser({ id: userData.id, email: userData.email });
+          setUserProfile(userData);
+        }
       } catch (error) {
+        console.error('Error initializing auth:', error);
         localStorage.removeItem('geocasa_user');
+      } finally {
+        setLoading(false);
+        setInitialized(true);
       }
-    }
-    setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const signUp = async (email: string, password: string, userData: any) => {
@@ -62,7 +71,9 @@ export const useAuth = () => {
         localStorage.setItem('geocasa_mock_users', JSON.stringify(existingUsers));
         localStorage.setItem('geocasa_user', JSON.stringify(newUser));
         
-        setUser({ id: newUser.id, email: newUser.email });
+        // Update state immediately
+        const userState = { id: newUser.id, email: newUser.email };
+        setUser(userState);
         setUserProfile(newUser);
         
         return { success: true, data: newUser };
@@ -105,7 +116,10 @@ export const useAuth = () => {
 
       // Store user session
       localStorage.setItem('geocasa_user', JSON.stringify(data));
-      setUser({ id: data.id, email: data.email });
+      
+      // Update state immediately
+      const userState = { id: data.id, email: data.email };
+      setUser(userState);
       setUserProfile(data);
 
       return { success: true, data };
@@ -144,7 +158,10 @@ export const useAuth = () => {
         
         // Store user session
         localStorage.setItem('geocasa_user', JSON.stringify(mockUser));
-        setUser({ id: mockUser.id, email: mockUser.email });
+        
+        // Update state immediately
+        const userState = { id: mockUser.id, email: mockUser.email };
+        setUser(userState);
         setUserProfile(mockUser);
         
         return { success: true, data: mockUser };
@@ -169,7 +186,10 @@ export const useAuth = () => {
 
       // Store user session
       localStorage.setItem('geocasa_user', JSON.stringify(data));
-      setUser({ id: data.id, email: data.email });
+      
+      // Update state immediately
+      const userState = { id: data.id, email: data.email };
+      setUser(userState);
       setUserProfile(data);
 
       return { success: true, data };
@@ -190,10 +210,15 @@ export const useAuth = () => {
   const signOut = async () => {
     try {
       localStorage.removeItem('geocasa_user');
+      
+      // Clear state immediately
       setUser(null);
       setUserProfile(null);
+      
+      toast.success('Déconnexion réussie');
     } catch (error) {
       console.error('Error signing out:', error);
+      toast.error('Erreur lors de la déconnexion');
     }
   };
 
@@ -203,7 +228,25 @@ export const useAuth = () => {
         return { success: false, error: 'Utilisateur non connecté' };
       }
 
-      if (!supabase) throw new Error('Supabase not configured');
+      if (!isSupabaseConfigured()) {
+        // Mock profile update for development
+        const updatedProfile = { ...userProfile, ...updates, updated_at: new Date().toISOString() };
+        
+        // Update localStorage
+        localStorage.setItem('geocasa_user', JSON.stringify(updatedProfile));
+        
+        // Update stored mock users
+        const storedUsers = JSON.parse(localStorage.getItem('geocasa_mock_users') || '[]');
+        const updatedUsers = storedUsers.map((u: any) => 
+          u.id === userProfile.id ? updatedProfile : u
+        );
+        localStorage.setItem('geocasa_mock_users', JSON.stringify(updatedUsers));
+        
+        // Update state
+        setUserProfile(updatedProfile);
+        
+        return { success: true, data: updatedProfile };
+      }
 
       const { data, error } = await supabase
         .from('users')
@@ -232,7 +275,7 @@ export const useAuth = () => {
   return {
     user,
     userProfile,
-    loading,
+    loading: loading || !initialized,
     signUp,
     signIn,
     signOut,

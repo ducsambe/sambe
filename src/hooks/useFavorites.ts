@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from './useAuth';
+import toast from 'react-hot-toast';
 
 export const useFavorites = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { userProfile } = useAuth();
+
+  // Initialize favorites when user profile is available
+  useEffect(() => {
+    if (userProfile) {
+      fetchFavorites();
+    } else {
+      setFavorites([]);
+    }
+  }, [userProfile]);
 
   const fetchFavorites = async () => {
     if (!userProfile) return;
@@ -17,6 +27,7 @@ export const useFavorites = () => {
       setFavorites(userFavorites.map((f: any) => f.property_id));
       return;
     }
+    
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -38,6 +49,15 @@ export const useFavorites = () => {
     if (!userProfile) return;
 
     const isFavorite = favorites.includes(propertyId);
+    
+    // Optimistic update - update UI immediately
+    if (isFavorite) {
+      setFavorites(prev => prev.filter(id => id !== propertyId));
+      toast.success('Retiré des favoris');
+    } else {
+      setFavorites(prev => [...prev, propertyId]);
+      toast.success('Ajouté aux favoris');
+    }
 
     if (!isSupabaseConfigured()) {
       // Mock favorites management
@@ -48,7 +68,6 @@ export const useFavorites = () => {
           !(f.user_id === userProfile.id && f.property_id === propertyId)
         );
         localStorage.setItem('geocasa_mock_favorites', JSON.stringify(updated));
-        setFavorites(prev => prev.filter(id => id !== propertyId));
       } else {
         const newFavorite = {
           id: `fav-${Date.now()}`,
@@ -58,10 +77,10 @@ export const useFavorites = () => {
         };
         mockFavorites.push(newFavorite);
         localStorage.setItem('geocasa_mock_favorites', JSON.stringify(mockFavorites));
-        setFavorites(prev => [...prev, propertyId]);
       }
       return;
     }
+    
     try {
       if (isFavorite) {
         // Remove from favorites
@@ -72,8 +91,6 @@ export const useFavorites = () => {
           .eq('property_id', propertyId);
 
         if (error) throw error;
-
-        setFavorites(prev => prev.filter(id => id !== propertyId));
       } else {
         // Add to favorites
         const { error } = await supabase
@@ -84,11 +101,16 @@ export const useFavorites = () => {
           });
 
         if (error) throw error;
-
-        setFavorites(prev => [...prev, propertyId]);
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
+      // Revert optimistic update on error
+      if (isFavorite) {
+        setFavorites(prev => [...prev, propertyId]);
+      } else {
+        setFavorites(prev => prev.filter(id => id !== propertyId));
+      }
+      toast.error('Erreur lors de la mise à jour des favoris');
     }
   };
 
@@ -117,19 +139,13 @@ export const useFavorites = () => {
 
       return data?.map(f => ({
         ...f.properties,
-        property_images: f.properties?.images?.map(url => ({ image_url: url })) || []
+        images: f.properties?.images || []
       })).filter(Boolean) || [];
     } catch (error) {
       console.error('Error fetching favorite properties:', error);
       return [];
     }
   };
-
-  useEffect(() => {
-    if (userProfile) {
-      fetchFavorites();
-    }
-  }, [userProfile]);
 
   return {
     favorites,
