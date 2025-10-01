@@ -1,6 +1,8 @@
 import React from 'react';
 import { Heart, MapPin, Eye, MessageCircle, Home, Ruler, Calendar } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../hooks/useAuth';
+import toast from 'react-hot-toast';
 
 interface PropertyCardProps {
   property: any;
@@ -18,6 +20,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   viewMode = 'grid'
 }) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -91,6 +94,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     window.open(whatsappUrl, '_blank');
   };
 
+  const handleFavoriteClick = () => {
+    if (!user) {
+      toast.error(language === 'en' ? 'Please login to add favorites' : 'Veuillez vous connecter pour ajouter aux favoris');
+      return;
+    }
+    onToggleFavorite(property.id);
+  };
   const propertyImage = property.property_images?.[0]?.image_url || 
     property.images?.[0] || 
     'https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=400';
@@ -108,7 +118,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             />
             
             <button
-              onClick={() => onToggleFavorite(property.id)}
+              onClick={handleFavoriteClick}
               className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-300 ${
                 isFavorite 
                   ? 'bg-red-500 text-white shadow-lg' 
@@ -217,7 +227,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         </div>
         
         <button
-          onClick={() => onToggleFavorite(property.id)}
+          onClick={handleFavoriteClick}
           className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-300 ${
             isFavorite 
               ? 'bg-red-500 text-white shadow-lg' 
