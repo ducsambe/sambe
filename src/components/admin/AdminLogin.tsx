@@ -10,7 +10,7 @@ interface AdminLoginProps {
 
 const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
-    login: '', // Can be username or email
+    login: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +32,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
 
   try {
     if (!isSupabaseConfigured()) {
-      // Mock admin authentication
+      
       const admin = mockAdmins.find(a => 
         (a.email === formData.login || a.username === formData.login) && 
         a.password_hash === formData.password
@@ -198,7 +198,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-blue-200 text-sm mb-2">
-            © 2024 GEOCASA GROUP - Tous droits réservés
+            © 2025 GEOCASA GROUP - Tous droits réservés
           </p>
           <Link 
             to="/" 
